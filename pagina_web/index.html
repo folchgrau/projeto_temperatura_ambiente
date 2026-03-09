@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestão de Temperatura - Dashboard</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="login-container">
+        <div id="login-form">
+            <h1>Gestão de Temperatura</h1>
+            <h4>Faça login para acessar os dados</h4>
+            <form id="meuFormLogin">
+                <input type="email" id="email" placeholder="E-mail" required>
+                <input type="password" id="password" placeholder="Senha" required>
+                <button type="submit">Entrar</button>
+            </form>
+            <p id="erro-login">Login incorreto ou erro de conexão.</p>
+        </div>
+    </div>
+
+    <div id="dashboard" class="container-geral">
+        <nav class="sidebar">
+            <div class="sidebar-logo"><h2>Menu</h2></div>
+            <ul class="nav-links">
+                <li id="btn-inicio" class="active" onclick="trocarTela('inicio')">Início</li>
+                <li id="btn-config" onclick="trocarTela('configuracao')">Configuração</li>
+            </ul>
+            <button class="logout-btn" onclick="fazerLogout()">Sair da Conta</button>
+        </nav>
+
+        <main class="main-content">
+            <section id="tela-inicio" class="tela">
+                <div class="card-destaque">
+                    <div class="info-atual">
+                        <span>Temperatura Atual</span>
+                        <h2 id="temp-atual">--.-- °C</h2>
+                    </div>
+                    <div class="status-box">
+                        <small id="status">Sincronizando...</small>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="header-tela">
+                        <h3>Histórico de Temperatura</h3>
+                        <div class="filtros">
+                            <label>Intervalo:</label>
+                            <select id="filtro-tempo" onchange="atualizarFiltroGrafico()">
+                                <option value="1">Última 1h</option>
+                                <option value="12">Últimas 12h</option>
+                                <option value="24" selected>Últimas 24h</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="meuGrafico"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <section id="tela-configuracao" class="tela" style="display: none;">
+                <div class="card">
+                    <h3>Configurações do Sistema (Setup)</h3>
+                    <hr>
+                    <form id="form-setup" class="config-grid">
+                        <div class="input-group">
+                            <label>Setpoint (°C)</label>
+                            <input type="number" id="setpoint" step="0.1" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Variação Máxima (°C)</label>
+                            <input type="number" id="var_max" step="0.1" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Variação Mínima (°C)</label>
+                            <input type="number" id="var_min" step="0.1" required>
+                        </div>
+                        <button type="submit" class="save-btn">Salvar Alterações</button>
+                    </form>
+                    <p id="msg-config" class="msg-sucesso">Configurações salvas!</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
