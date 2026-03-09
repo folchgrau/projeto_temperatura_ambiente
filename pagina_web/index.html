@@ -69,7 +69,26 @@
 
             <section id="tela-configuracao" class="tela" style="display: none;">
                 <div class="card">
-                    <h3>Configurações do Sistema (Setup)</h3>
+                    <h3>Controle do Sistema</h3>
+                    <hr>
+                    <div class="control-section">
+                        <div class="switch-group">
+                            <span>Modo Automático</span>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-automatico" onchange="salvarToggle('automatico', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                        <div class="switch-group" id="group-manual">
+                            <span>Ativar Saída (Manual)</span>
+                            <label class="switch">
+                                <input type="checkbox" id="sw-liga-tudo" onchange="salvarToggle('liga', this.checked)">
+                                <span class="slider round"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <h3 style="margin-top: 30px;">Parâmetros de Temperatura</h3>
                     <hr>
                     <form id="form-setup" class="config-grid">
                         <div class="input-group">
@@ -84,9 +103,9 @@
                             <label>Variação Mínima (°C)</label>
                             <input type="number" id="var_min" step="0.1" required>
                         </div>
-                        <button type="submit" class="save-btn">Salvar Alterações</button>
+                        <button type="submit" class="save-btn">Salvar Parâmetros</button>
                     </form>
-                    <p id="msg-config" class="msg-sucesso">Configurações salvas!</p>
+                    <p id="msg-config" class="msg-sucesso">Dados atualizados com sucesso!</p>
                 </div>
             </section>
         </main>

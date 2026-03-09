@@ -1,13 +1,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #333; }
 
-/* Login */
 #login-container { height: 100vh; display: flex; justify-content: center; align-items: center; }
 #login-form { background: white; padding: 40px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; width: 100%; max-width: 400px; }
 input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 6px; }
 button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 15px; }
 
-/* Dashboard */
 .container-geral { display: none; width: 100vw; height: 100vh; }
 .sidebar { width: 220px; background: #1a73e8; color: white; display: flex; flex-direction: column; padding: 20px; flex-shrink: 0; }
 .nav-links { list-style: none; flex-grow: 1; margin-top: 20px;}
@@ -18,29 +16,34 @@ button { width: 100%; padding: 12px; background: #1a73e8; color: white; border: 
 .main-content { flex-grow: 1; padding: 30px; overflow-y: auto; }
 .card { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 20px; }
 
-/* Card Destaque (Temperatura Atual) */
 .card-destaque {
     background: linear-gradient(135deg, #1a73e8, #0d47a1);
-    color: white;
-    padding: 25px;
-    border-radius: 12px;
-    margin-bottom: 20px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    color: white; padding: 25px; border-radius: 12px; margin-bottom: 20px;
+    display: flex; justify-content: space-between; align-items: center;
 }
-.info-atual span { font-size: 14px; opacity: 0.9; }
 .info-atual h2 { font-size: 36px; margin-top: 5px; }
 
-/* Filtros */
 .header-tela { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .filtros { display: flex; align-items: center; gap: 10px; }
-select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; outline: none; }
+select { padding: 8px; border-radius: 6px; border: 1px solid #ddd; }
 
 .chart-container { position: relative; height: 350px; width: 100%; }
 
-/* Configuração */
-.config-grid { display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin-top: 20px; }
+/* Switch Style */
+.control-section { display: flex; flex-direction: column; gap: 15px; margin-top: 15px; }
+.switch-group { display: flex; justify-content: space-between; align-items: center; max-width: 350px; background: #f8f9fa; padding: 10px 15px; border-radius: 8px; }
+
+.switch { position: relative; display: inline-block; width: 50px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; }
+input:checked + .slider { background-color: #27ae60; }
+input:checked + .slider:before { transform: translateX(26px); }
+.slider.round { border-radius: 24px; }
+.slider.round:before { border-radius: 50%; }
+
+/* Configuração Grid */
+.config-grid { display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin-top: 15px; }
 .input-group { display: flex; flex-direction: column; }
 .input-group label { font-size: 14px; font-weight: 600; margin-bottom: 5px; }
 .save-btn { background: #27ae60; }

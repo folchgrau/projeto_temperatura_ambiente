@@ -15,18 +15,16 @@ const database = firebase.database();
 let grafico;
 let monitoramentoRef;
 
-// Segurança: Desloga ao fechar
 window.addEventListener('beforeunload', () => auth.signOut());
 
 // --- Autenticação ---
 auth.onAuthStateChanged(user => {
     const loginUI = document.getElementById('login-container');
     const dashUI = document.getElementById('dashboard');
-
     if (user) {
         loginUI.style.display = 'none';
         dashUI.style.display = 'flex';
-        atualizarFiltroGrafico(); // Inicia o gráfico
+        atualizarFiltroGrafico();
     } else {
         loginUI.style.display = 'flex';
         dashUI.style.display = 'none';
@@ -66,81 +64,77 @@ function trocarTela(tela) {
 // --- Gráfico e Filtros ---
 function atualizarFiltroGrafico() {
     const horas = parseInt(document.getElementById('filtro-tempo').value);
-    const milissegundosIntervalo = horas * 60 * 60 * 1000;
-    const tempoCorte = Date.now() - milissegundosIntervalo;
-
+    const tempoCorte = Date.now() - (horas * 60 * 60 * 1000);
     iniciarGrafico(tempoCorte);
 }
 
 function iniciarGrafico(tempoCorte) {
     const ctx = document.getElementById('meuGrafico').getContext('2d');
-    
     if (!grafico) {
         grafico = new Chart(ctx, {
             type: 'line',
-            data: { 
-                labels: [], 
-                datasets: [{ 
-                    label: 'Temperatura (°C)', 
-                    borderColor: '#1a73e8', 
-                    backgroundColor: 'rgba(26, 115, 232, 0.1)',
-                    data: [], 
-                    fill: true,
-                    tension: 0.3,
-                    pointRadius: 1
-                }]
-            },
-            options: { 
-                responsive: true, maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-                scales: { x: { grid: { display: false } } }
-            }
+            data: { labels: [], datasets: [{ label: 'Temperatura (°C)', borderColor: '#1a73e8', backgroundColor: 'rgba(26, 115, 232, 0.1)', data: [], fill: true, tension: 0.3, pointRadius: 1 }] },
+            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
         });
     }
-
-    // Desliga listener anterior se existir
     if (monitoramentoRef) monitoramentoRef.off();
-
-    // Listener para dados históricos + tempo real
-    monitoramentoRef = database.ref('dados')
-        .orderByChild('timestamp')
-        .startAt(tempoCorte);
-
+    monitoramentoRef = database.ref('dados').orderByChild('timestamp').startAt(tempoCorte);
     monitoramentoRef.on('value', snapshot => {
         const labels = [], valores = [];
         let ultimaTemp = null;
-
         snapshot.forEach(child => {
             const reg = child.val();
-            const hora = new Date(reg.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'});
-            labels.push(hora);
+            labels.push(new Date(reg.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}));
             valores.push(Number(reg.temp_media).toFixed(2));
-            ultimaTemp = reg.temp_media; // O último do loop será o mais recente
+            ultimaTemp = reg.temp_media;
         });
-
-        // Atualiza Gráfico
         grafico.data.labels = labels;
         grafico.data.datasets[0].data = valores;
         grafico.update();
-
-        // Atualiza Valor Atual no Card
         if (ultimaTemp !== null) {
             document.getElementById('temp-atual').innerText = Number(ultimaTemp).toFixed(2) + " °C";
-            document.getElementById('status').innerText = "Último sinal: " + new Date().toLocaleTimeString();
+            document.getElementById('status').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
         }
     });
 }
 
-// --- Setup ---
+// --- Setup (Configurações e Toggles) ---
+
 function carregarSetup() {
     database.ref('setup').once('value').then(snapshot => {
         const d = snapshot.val();
         if (d) {
-            document.getElementById('setpoint').value = d.setpoint;
-            document.getElementById('var_max').value = d.var_max;
-            document.getElementById('var_min').value = d.var_min;
+            // Inputs numéricos
+            document.getElementById('setpoint').value = d.setpoint || "";
+            document.getElementById('var_max').value = d.var_max || "";
+            document.getElementById('var_min').value = d.var_min || "";
+            
+            // Switches (Booleans)
+            document.getElementById('sw-automatico').checked = d.automatico || false;
+            document.getElementById('sw-liga').checked = d.liga || false;
+            
+            // Logica visual: se tiver no automático, esconde/desativa o controle manual
+            gerenciarVisibilidadeManual(d.automatico);
         }
     });
+}
+
+// Função para salvar os Switches (true/false)
+function salvarToggle(campo, valor) {
+    const update = {};
+    update[campo] = valor;
+    database.ref('setup').update(update);
+    
+    if (campo === 'automatico') {
+        gerenciarVisibilidadeManual(valor);
+    }
+}
+
+// Oculta o controle manual se o sistema estiver no Automático
+function gerenciarVisibilidadeManual(isAuto) {
+    const manualGroup = document.getElementById('group-manual');
+    manualGroup.style.opacity = isAuto ? "0.3" : "1";
+    document.getElementById('sw-liga-tudo').disabled = isAuto;
 }
 
 document.getElementById('form-setup').addEventListener('submit', (e) => {
