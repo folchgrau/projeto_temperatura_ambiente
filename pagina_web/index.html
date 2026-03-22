@@ -3,109 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestão de Temperatura - Dashboard</title>
+    <title>Controle automático de temperatura</title>
     
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="light-mode">
 
-    <div id="login-container">
+    <a href="#main-content" class="skip-link">Pular para o conteúdo principal</a>
+
+    <div id="login-container" role="main">
         <div id="login-form">
-            <h1>Gestão de Temperatura</h1>
-            <h4>Faça login para acessar os dados</h4>
+            <h1>Sistema de controle de temperatura</h1><br>
+            <p>Faça login para acessar a tela de controle e visualização</p><br>
             <form id="meuFormLogin">
-                <input type="email" id="email" placeholder="E-mail" required>
-                <input type="password" id="password" placeholder="Senha" required>
-                <button type="submit">Entrar</button>
+                <label for="email">E-mail</label>
+                <input type="email" id="email" autocomplete="email" required>
+                
+                <label for="password">Senha</label>
+                <input type="password" id="password" autocomplete="current-password" required>
+                <br><br>
+                <button type="submit">Entrar no Sistema</button>
             </form>
-            <p id="erro-login">Login incorreto ou erro de conexão.</p>
+            <p id="erro-login" class="error-msg" role="alert" style="display: none;">Login incorreto.</p>
         </div>
     </div>
 
-    <div id="dashboard" class="container-geral">
-        <nav class="sidebar">
-            <div class="sidebar-logo"><h2>Menu</h2></div>
+    <div id="dashboard" class="container-geral" style="display: none;">
+        <nav class="sidebar" aria-label="Menu Principal">
+            <div class="sidebar-logo"><h2>Painel IoT</h2></div>
             <ul class="nav-links">
-                <li id="btn-inicio" class="active" onclick="trocarTela('inicio')">Início</li>
-                <li id="btn-config" onclick="trocarTela('configuracao')">Configuração</li>
+                <li><button id="btn-inicio" class="nav-item active" onclick="trocarTela('inicio')">🏠 Início</button></li>
+                <li><button id="btn-config" class="nav-item" onclick="trocarTela('configuracao')">⚙️ Configuração</button></li>
             </ul>
+            
+            <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
+                <span id="theme-icon">🌙</span> <span id="theme-text">Modo Escuro</span>
+            </button>
+
             <button class="logout-btn" onclick="fazerLogout()">Sair da Conta</button>
         </nav>
 
-        <main class="main-content">
-            <section id="tela-inicio" class="tela">
-                <div class="card-destaque">
+        <main id="main-content" class="main-content" tabindex="-1">
+            
+            <section id="tela-inicio" class="tela" aria-labelledby="titulo-inicio">
+                <header class="card-destaque">
                     <div class="info-atual">
-                        <span>Temperatura Atual</span>
-                        <h2 id="temp-atual">--.-- °C</h2>
+                        <span id="titulo-inicio">Temperatura Atual</span>
+                        <h2 id="temp-atual" aria-live="polite">--.-- °C</h2>
                     </div>
                     <div class="status-box">
-                        <small id="status">Sincronizando...</small>
+                        <small id="status" role="status">Sincronizando...</small>
                     </div>
-                </div>
+                </header>
 
                 <div class="card">
                     <div class="header-tela">
                         <h3>Histórico de Temperatura</h3>
                         <div class="filtros">
-                            <label>Intervalo:</label>
+                            <label for="filtro-tempo">Período:</label>
                             <select id="filtro-tempo" onchange="atualizarFiltroGrafico()">
-                                <option value="1">Última 1h</option>
-                                <option value="12">Últimas 12h</option>
-                                <option value="24" selected>Últimas 24h</option>
+                                <option value="1">1 hora</option>
+                                <option value="12">12 horas</option>
+                                <option value="24" selected>24 horas</option>
                             </select>
                         </div>
                     </div>
                     <div class="chart-container">
-                        <canvas id="meuGrafico"></canvas>
+                        <canvas id="meuGrafico" aria-label="Gráfico de Temperatura" role="img"></canvas>
                     </div>
                 </div>
             </section>
 
-            <section id="tela-configuracao" class="tela" style="display: none;">
+            <section id="tela-configuracao" class="tela" style="display: none;" aria-labelledby="titulo-config">
                 <div class="card">
-                    <h3>Controle do Sistema</h3>
-                    <hr>
+                    <h3 id="titulo-config">Controle Operacional</h3>
+                    <hr aria-hidden="true">
+                    
                     <div class="control-section">
                         <div class="switch-group">
-                            <span>Modo Automático</span>
+                            <span id="label-auto">Modo Automático (ligado / desligado)</span>
                             <label class="switch">
-                                <input type="checkbox" id="sw-automatico" onchange="salvarToggle('automatico', this.checked)">
+                                <input type="checkbox" id="sw-automatico" aria-labelledby="label-auto" onchange="salvarToggle('automatico', this.checked)">
                                 <span class="slider round"></span>
                             </label>
                         </div>
+
                         <div class="switch-group" id="group-manual">
-                            <span>Ativar Saída (Manual)</span>
+                            <span id="label-manual">Manual (ligar / desligar)</span>
                             <label class="switch">
-                                <input type="checkbox" id="sw-liga-tudo" onchange="salvarToggle('liga', this.checked)">
+                                <input type="checkbox" id="sw-liga" aria-labelledby="label-manual" onchange="salvarToggle('liga', this.checked)">
                                 <span class="slider round"></span>
                             </label>
                         </div>
                     </div>
 
-                    <h3 style="margin-top: 30px;">Parâmetros de Temperatura</h3>
-                    <hr>
+                    <h3 style="margin-top: 30px;">Configurações no modo automático</h3>
+                    <hr aria-hidden="true">
+                    
                     <form id="form-setup" class="config-grid">
                         <div class="input-group">
-                            <label>Setpoint (°C)</label>
+                            <label for="setpoint">Setpoint °C</label>
                             <input type="number" id="setpoint" step="0.1" required>
                         </div>
                         <div class="input-group">
-                            <label>Variação Máxima (°C)</label>
+                            <label for="var_max">Variação Máxima (+°C)</label>
                             <input type="number" id="var_max" step="0.1" required>
                         </div>
                         <div class="input-group">
-                            <label>Variação Mínima (°C)</label>
+                            <label for="var_min">Variação Mínima (-°C)</label>
                             <input type="number" id="var_min" step="0.1" required>
                         </div>
-                        <button type="submit" class="save-btn">Salvar Parâmetros</button>
+                        <button type="submit" class="save-btn">Salvar configurações</button>
                     </form>
-                    <p id="msg-config" class="msg-sucesso">Dados atualizados com sucesso!</p>
+                    <p id="msg-config" class="msg-sucesso" role="status" style="display: none;">Dados gravados com sucesso!</p>
                 </div>
             </section>
         </main>

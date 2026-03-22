@@ -1,2 +1,14 @@
-
-[]
+{
+  "dados": {},
+  "setup": {
+    "automatico": true,
+    "liga": false,
+    "setpoint": 23,
+    "var_max": 0.7,
+    "var_min": 1,
+    "ar_desliga": 49157,
+    "ar_liga": 117,
+    "endereco_ar":136,
+    "set_22":2165
+  }
+}

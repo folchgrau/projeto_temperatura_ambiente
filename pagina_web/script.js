@@ -13,22 +13,36 @@ const auth = firebase.auth();
 const database = firebase.database();
 
 let grafico;
-let monitoramentoRef;
+let monitorRef;
 
-window.addEventListener('beforeunload', () => auth.signOut());
+// --- INICIALIZAÇÃO E TEMA ---
+document.addEventListener('DOMContentLoaded', () => {
+    const salvo = localStorage.getItem('theme');
+    if (salvo === 'dark') toggleTheme(true);
+});
 
-// --- Autenticação ---
+function toggleTheme(forceDark = false) {
+    const isDark = forceDark || document.body.classList.toggle('dark-mode');
+    if (forceDark) document.body.classList.add('dark-mode');
+    
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    document.getElementById('theme-icon').innerText = isDark ? '☀️' : '🌙';
+    document.getElementById('theme-text').innerText = isDark ? 'Modo Claro' : 'Modo Escuro';
+    if (grafico) atualizarCoresGrafico(isDark);
+}
+
+// --- AUTENTICAÇÃO ---
 auth.onAuthStateChanged(user => {
     const loginUI = document.getElementById('login-container');
     const dashUI = document.getElementById('dashboard');
     if (user) {
         loginUI.style.display = 'none';
         dashUI.style.display = 'flex';
-        atualizarFiltroGrafico();
+        iniciarApp();
     } else {
         loginUI.style.display = 'flex';
         dashUI.style.display = 'none';
-        if (monitoramentoRef) monitoramentoRef.off();
+        if (monitorRef) monitorRef.off();
     }
 });
 
@@ -36,105 +50,42 @@ document.getElementById('meuFormLogin').addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
-    auth.setPersistence(firebase.auth.Auth.Persistence.SESSION).then(() => {
-        return auth.signInWithEmailAndPassword(email, password);
-    }).catch(() => document.getElementById('erro-login').style.display = 'block');
+    auth.signInWithEmailAndPassword(email, password).catch(() => {
+        document.getElementById('erro-login').style.display = 'block';
+    });
 });
 
 function fazerLogout() { auth.signOut(); }
 
-// --- Navegação ---
+// --- DASHBOARD ---
 function trocarTela(tela) {
-    const inicio = document.getElementById('tela-inicio');
-    const config = document.getElementById('tela-configuracao');
+    document.getElementById('tela-inicio').style.display = (tela === 'inicio' ? 'block' : 'none');
+    document.getElementById('tela-configuracao').style.display = (tela === 'configuracao' ? 'block' : 'none');
     document.getElementById('btn-inicio').classList.toggle('active', tela === 'inicio');
     document.getElementById('btn-config').classList.toggle('active', tela === 'configuracao');
-
-    if (tela === 'inicio') {
-        inicio.style.display = 'block';
-        config.style.display = 'none';
-        atualizarFiltroGrafico();
-    } else {
-        inicio.style.display = 'none';
-        config.style.display = 'block';
-        carregarSetup();
-    }
+    document.getElementById('main-content').focus();
 }
 
-// --- Gráfico e Filtros ---
-function atualizarFiltroGrafico() {
-    const horas = parseInt(document.getElementById('filtro-tempo').value);
-    const tempoCorte = Date.now() - (horas * 60 * 60 * 1000);
-    iniciarGrafico(tempoCorte);
-}
-
-function iniciarGrafico(tempoCorte) {
-    const ctx = document.getElementById('meuGrafico').getContext('2d');
-    if (!grafico) {
-        grafico = new Chart(ctx, {
-            type: 'line',
-            data: { labels: [], datasets: [{ label: 'Temperatura (°C)', borderColor: '#1a73e8', backgroundColor: 'rgba(26, 115, 232, 0.1)', data: [], fill: true, tension: 0.3, pointRadius: 1 }] },
-            options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-        });
-    }
-    if (monitoramentoRef) monitoramentoRef.off();
-    monitoramentoRef = database.ref('dados').orderByChild('timestamp').startAt(tempoCorte);
-    monitoramentoRef.on('value', snapshot => {
-        const labels = [], valores = [];
-        let ultimaTemp = null;
-        snapshot.forEach(child => {
-            const reg = child.val();
-            labels.push(new Date(reg.timestamp).toLocaleTimeString('pt-BR', {hour: '2-digit', minute: '2-digit'}));
-            valores.push(Number(reg.temp_media).toFixed(2));
-            ultimaTemp = reg.temp_media;
-        });
-        grafico.data.labels = labels;
-        grafico.data.datasets[0].data = valores;
-        grafico.update();
-        if (ultimaTemp !== null) {
-            document.getElementById('temp-atual').innerText = Number(ultimaTemp).toFixed(2) + " °C";
-            document.getElementById('status').innerText = "Sincronizado: " + new Date().toLocaleTimeString();
-        }
-    });
-}
-
-// --- Setup (Configurações e Toggles) ---
-
-function carregarSetup() {
-    database.ref('setup').once('value').then(snapshot => {
+function iniciarApp() {
+    // Sincronização em Tempo Real das Configurações
+    database.ref('setup').on('value', snapshot => {
         const d = snapshot.val();
         if (d) {
-            // Inputs numéricos
-            document.getElementById('setpoint').value = d.setpoint || "";
-            document.getElementById('var_max').value = d.var_max || "";
-            document.getElementById('var_min').value = d.var_min || "";
+            document.getElementById('sw-automatico').checked = d.automatico;
+            document.getElementById('sw-liga').checked = d.liga;
+            document.getElementById('setpoint').value = d.setpoint;
+            document.getElementById('var_max').value = d.var_max;
+            document.getElementById('var_min').value = d.var_min;
             
-            // Switches (Booleans)
-            document.getElementById('sw-automatico').checked = d.automatico || false;
-            document.getElementById('sw-liga').checked = d.liga || false;
-            
-            // Logica visual: se tiver no automático, esconde/desativa o controle manual
-            gerenciarVisibilidadeManual(d.automatico);
+            document.getElementById('group-manual').classList.toggle('disabled', d.automatico);
+            document.getElementById('sw-liga').disabled = d.automatico;
         }
     });
+    atualizarFiltroGrafico();
 }
 
-// Função para salvar os Switches (true/false)
 function salvarToggle(campo, valor) {
-    const update = {};
-    update[campo] = valor;
-    database.ref('setup').update(update);
-    
-    if (campo === 'automatico') {
-        gerenciarVisibilidadeManual(valor);
-    }
-}
-
-// Oculta o controle manual se o sistema estiver no Automático
-function gerenciarVisibilidadeManual(isAuto) {
-    const manualGroup = document.getElementById('group-manual');
-    manualGroup.style.opacity = isAuto ? "0.3" : "1";
-    document.getElementById('sw-liga-tudo').disabled = isAuto;
+    database.ref('setup').update({ [campo]: valor });
 }
 
 document.getElementById('form-setup').addEventListener('submit', (e) => {
@@ -145,7 +96,76 @@ document.getElementById('form-setup').addEventListener('submit', (e) => {
         var_min: parseFloat(document.getElementById('var_min').value)
     };
     database.ref('setup').update(dados).then(() => {
-        document.getElementById('msg-config').style.display = 'block';
-        setTimeout(() => document.getElementById('msg-config').style.display = 'none', 3000);
+        const msg = document.getElementById('msg-config');
+        msg.style.display = 'block';
+        setTimeout(() => msg.style.display = 'none', 3000);
     });
 });
+
+// --- GRÁFICO ---
+function atualizarFiltroGrafico() {
+    const horas = parseInt(document.getElementById('filtro-tempo').value);
+    const tempoCorte = Date.now() - (horas * 60 * 60 * 1000);
+    if (monitorRef) monitorRef.off();
+
+    monitorRef = database.ref('dados').orderByChild('timestamp').startAt(tempoCorte);
+    monitorRef.on('value', snapshot => {
+        const labels = [], valores = [];
+        let ultima = null;
+        snapshot.forEach(child => {
+            const r = child.val();
+            labels.push(r.hora_leitura.split(' ')[1].substring(0, 5));
+            valores.push(r.temp_media);
+            ultima = r.temp_media;
+        });
+        desenharGrafico(labels, valores);
+        if (ultima) document.getElementById('temp-atual').innerText = ultima.toFixed(2) + " °C";
+        document.getElementById('status').innerText = "Última leitura: " + new Date().toLocaleTimeString();
+    });
+}
+
+function desenharGrafico(labels, valores) {
+    const ctx = document.getElementById('meuGrafico').getContext('2d');
+    const isDark = document.body.classList.contains('dark-mode');
+    
+    if (grafico) grafico.destroy();
+    
+    grafico = new Chart(ctx, {
+        type: 'line',
+        data: { 
+            labels, 
+            datasets: [{ 
+                data: valores, 
+                borderColor: isDark ? '#4dadff' : '#1a73e8', 
+                backgroundColor: 'rgba(26, 115, 232, 0.1)', 
+                fill: true, 
+                tension: 0.3 
+            }] 
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    ticks: { color: isDark ? '#bbb' : '#666', callback: v => v.toFixed(1) + '°' },
+                    grid: { color: isDark ? '#333' : '#eee' },
+                    afterDataLimits: a => { a.max += 5; a.min -= 5; }
+                },
+                x: {
+                    ticks: { color: isDark ? '#bbb' : '#666' },
+                    grid: { display: false }
+                }
+            }
+        }
+    });
+}
+
+function atualizarCoresGrafico(isDark) {
+    if (!grafico) return;
+    grafico.options.scales.y.grid.color = isDark ? '#333' : '#eee';
+    grafico.options.scales.y.ticks.color = isDark ? '#bbb' : '#666';
+    grafico.options.scales.x.ticks.color = isDark ? '#bbb' : '#666';
+    grafico.data.datasets[0].borderColor = isDark ? '#4dadff' : '#1a73e8';
+    grafico.update();
+}
