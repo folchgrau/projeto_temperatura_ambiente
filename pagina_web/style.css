@@ -3,10 +3,13 @@
     --bg-card: #ffffff;
     --text-main: #2d3436;
     --text-sub: #636e72;
-    --sidebar-bg: #1a73e8;
-    --accent: #27ae60;
+    --sidebar-bg: #06F;
+    --accent: #000;
     --border: #dfe6e9;
     --switch-bg: #f1f2f6;
+    --fundo_save: #3F9;
+    --fundo_switch:0,0,0 ;
+    --texto_switch: 255,255,255;
 }
 
 body.dark-mode {
@@ -15,9 +18,12 @@ body.dark-mode {
     --text-main: #dfe6e9;
     --text-sub: #b2bec3;
     --sidebar-bg: #000000;
-    --accent: #2ecc71;
+    --accent: #090;
     --border: #2d3436;
-    --switch-bg: #2d3436;
+    --switch-bg: #134755;
+    --fundo_save: #3F9;
+    --fundo_switch:255,255,255;
+    --texto_switch: 0,0,0;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -32,14 +38,14 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-body
 #login-form label { display: block; text-align: left; margin: 10px 0 5px; font-weight: bold; }
 
 .container-geral { display: flex; width: 100vw; height: 100vh; }
-.sidebar { width: 260px; background: var(--sidebar-bg); color: white; padding: 25px; display: flex; flex-direction: column; transition: 0.3s; }
-.nav-item { width: 100%; text-align: left; padding: 15px; border: none; background: transparent; color: white; border-radius: 10px; cursor: pointer; font-size: 16px; margin-bottom: 8px; transition: 0.2s; }
+.sidebar { width: 200px; background: var(--sidebar-bg); color: white; padding: 25px; display: flex; flex-direction: column; transition: 0.3s; }
+.nav-item { width: 100%; text-align: left; padding: 10px; border: none; background: transparent; color: white; border-radius: 10px; cursor: pointer; font-size: 16px; margin-bottom: 8px;margin-top: 25px; transition: 0.2s; }
 .nav-item.active { background: white; color: var(--sidebar-bg); font-weight: bold; }
 
 .main-content { flex-grow: 1; padding: 40px; overflow-y: auto; }
 .card { background: var(--bg-card); padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.05); margin-bottom: 25px; }
 
-.card-destaque { background: linear-gradient(135deg, #1a73e8, #0984e3); color: white; padding: 30px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+.card-destaque { background: linear-gradient(135deg, #06F, #06F); color: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
 .info-atual h2 { font-size: 3.5rem; margin-top: 5px; }
 
 .switch-group { display: flex; justify-content: space-between; align-items: center; padding: 15px; background: var(--switch-bg); border-radius: 10px; margin-bottom: 10px; }
@@ -52,11 +58,14 @@ body { font-family: 'Segoe UI', system-ui, sans-serif; background: var(--bg-body
 input:checked + .slider { background: var(--accent); }
 input:checked + .slider:before { transform: translateX(24px); }
 
-.theme-toggle { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: white; padding: 12px; border-radius: 10px; cursor: pointer; margin: 20px 0; display: flex; align-items: center; gap: 10px; }
-.logout-btn { background: #eb4d4b; margin-top: auto; padding: 15px; border-radius: 10px; border: none; color: white; cursor: pointer; font-weight: bold; }
+.theme-toggle { background: rgba(var(--fundo_switch), 1.0); border: none; color: rgb(var(--texto_switch)); padding: 12px; border-radius: 10px; cursor: pointer; margin-top: auto;}
+.zoom_more { background: rgb(228, 195, 195);margin-top: 10px;padding: 12px;border-radius: 10px;border: none;color: white;cursor: zoom-in;font-weight: bold;}
+.zoom_minus { background: rgb(228, 195, 195);margin-top: 10px;padding: 12px;border-radius: 10px;border: none;color: white;cursor: zoom-out;font-weight: bold;}
+.zoom_reset { background: rgb(228, 195, 195);margin-top: 10px;padding: 12px;border-radius: 10px;border: none;color: white;cursor: default;font-weight: bold;}
+.logout-btn { background: #C00; margin-top: 10px; padding: 15px; border-radius: 10px; border: none; color: white; cursor: pointer; font-weight: bold; }
 
 .config-grid { display: flex; flex-direction: column; gap: 20px; max-width: 450px; }
 .input-group label { margin-bottom: 8px; font-weight: 600; display: block; }
 input[type="number"], input[type="email"], input[type="password"] { width: 100%; padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); color: var(--text-main); }
-.save-btn { background: var(--accent); }
+.save-btn { background: var(--fundo_save); }
 .chart-container { height: 400px; width: 100%; }

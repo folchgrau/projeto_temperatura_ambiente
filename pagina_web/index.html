@@ -45,8 +45,10 @@
             <button class="theme-toggle" onclick="toggleTheme()" aria-label="Alternar tema">
                 <span id="theme-icon">🌙</span> <span id="theme-text">Modo Escuro</span>
             </button>
-
-            <button class="logout-btn" onclick="fazerLogout()">Sair da Conta</button>
+		<button class="zoom_more" onclick="alterarZoom(0.1)">🔍 Aumentar +</button>
+            <button class="zoom_minus" onclick="alterarZoom(-0.1)">🔎 Diminuir -</button>
+            <button class="zoom_reset" onclick="resetarZoom()">↺ Resetar</button>
+            <button class="logout-btn" onclick="fazerLogout()">Sair da Conta ➜]</button>
         </nav>
 
         <main id="main-content" class="main-content" tabindex="-1">

@@ -138,6 +138,7 @@ function desenharGrafico(labels, valores) {
                 data: valores, 
                 borderColor: isDark ? '#4dadff' : '#1a73e8', 
                 backgroundColor: 'rgba(26, 115, 232, 0.1)', 
+		pointRadius: 1,
                 fill: true, 
                 tension: 0.3 
             }] 
@@ -168,4 +169,18 @@ function atualizarCoresGrafico(isDark) {
     grafico.options.scales.x.ticks.color = isDark ? '#bbb' : '#666';
     grafico.data.datasets[0].borderColor = isDark ? '#4dadff' : '#1a73e8';
     grafico.update();
+}
+
+let nivelZoom = 1;
+
+function alterarZoom(delta) {
+    nivelZoom += delta;
+    if (nivelZoom < 0.5) nivelZoom = 0.5;
+    if (nivelZoom > 2) nivelZoom = 2;
+    document.body.style.zoom = nivelZoom;
+}
+
+function resetarZoom() {
+    nivelZoom = 1;
+    document.body.style.zoom = 1;
 }
